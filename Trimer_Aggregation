@@ -1,0 +1,49 @@
+import numpy as np
+from scipy.optimize import curve_fit
+
+def trimer_equilibrium(m_tot, K1, K2, delta_M, delta_M2, delta_M3):
+    """
+    Computes the observed chemical shift based on a trimer aggregation model.
+    
+    Parameters:
+    m_tot : float or array
+        Total monomer concentration
+    K1 : float
+        Equilibrium constant for monomer to dimer
+    K2 : float
+        Equilibrium constant for dimer to trimer
+    delta_M : float
+        Chemical shift of monomer
+    delta_M2 : float
+        Chemical shift of dimer
+    delta_M3 : float
+        Chemical shift of trimer
+    """
+    
+    # Solve for monomer concentration using a cubic equation approximation
+    M = m_tot / (1 + 2*K1*m_tot + 3*K1*K2*m_tot**2)
+    M2 = K1 * M**2
+    M3 = K2 * M * M2
+    
+    # Compute observed chemical shift
+    delta_obs = (M * delta_M + 2*M2 * delta_M2 + 3*M3 * delta_M3) / (M + 2*M2 + 3*M3)
+    
+    return delta_obs
+
+# Example data (replace with actual NMR titration data)
+m_tot_data = np.array([0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0])  # Total concentration
+observed_shifts = np.array([8.1, 8.2, 8.4, 8.6, 8.75, 8.85, 8.9])  # NMR shifts
+
+# Initial parameter guesses (K1, K2, delta_M, delta_M2, delta_M3)
+initial_guess = (100, 10, 8.0, 8.5, 8.9)
+
+# Fit model to data
+popt, pcov = curve_fit(trimer_equilibrium, m_tot_data, observed_shifts, p0=initial_guess)
+
+# Extract fitted parameters
+K1_fit, K2_fit, delta_M_fit, delta_M2_fit, delta_M3_fit = popt
+print(f"Fitted K1: {K1_fit:.2f}")
+print(f"Fitted K2: {K2_fit:.2f}")
+print(f"Fitted delta_M: {delta_M_fit:.3f}")
+print(f"Fitted delta_M2: {delta_M2_fit:.3f}")
+print(f"Fitted delta_M3: {delta_M3_fit:.3f}")
